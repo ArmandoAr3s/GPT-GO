@@ -1,8 +1,18 @@
 {
   "projects": [],
   "canon": [
-    { "name": "Kushtetuta Supreme", "path_or_url": "./MindSync_SUPREME_STRUCTURE.md" },
-    { "name": "Kushtetuta Operative", "path_or_url": "./nucleus/constitution.md" }
+    {
+      "name": "Kushtetuta Supreme",
+      "path_or_url": "./MindSync_SUPREME_STRUCTURE.md"
+    },
+    {
+      "name": "Kushtetuta Operative",
+      "path_or_url": "./nucleus/constitution.md"
+    },
+    {
+      "name": "BOOT",
+      "path_or_url": "./BOOT.md"
+    }
   ],
   "artifacts": []
 }
