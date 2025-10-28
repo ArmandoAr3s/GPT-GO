@@ -1,4 +1,3 @@
-[INDEX (1).md](https://github.com/user-attachments/files/23197020/INDEX.1.md)
 # 🧭 INDEX — GPT‑GO (kanonik)
 
 > Hyrja zyrtare e projektit **GPT‑GO** brenda MindSync. Ky dokument lidhet me BOOT, statusin e sistemit dhe regjistrin e linkëve.
