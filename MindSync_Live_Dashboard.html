@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MindSync — Live Dashboard</title>
+  <style>
+    :root{
+      --bg:#0b0e13; --panel:#11161f; --muted:#9bb0c4;
+      --text:#e6edf3; --accent:#4cc9f0; --ok:#2bd576; --warn:#f4bd2a; --bad:#ff6b6b;
+      --card:#0f141c; --border:#1f2a3a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,#0a0d12, #0b0e13 40%, #0a0c11);
+      color:var(--text); font:14px/1.6 system-ui,Segoe UI,Roboto,Ubuntu,Helvetica,Arial;
+      display:flex; flex-direction:column;
+    }
+    header{
+      display:flex; gap:14px; align-items:center; padding:18px 20px; border-bottom:1px solid var(--border);
+      position:sticky; top:0; background:rgba(11,14,19,.85); backdrop-filter: blur(8px);
+    }
+    header h1{margin:0; font-size:18px; letter-spacing:.2px}
+    header .pill{padding:4px 10px; border:1px solid var(--border); border-radius:999px; color:var(--muted)}
+    main{display:grid; grid-template-columns: 320px 1fr; gap:16px; padding:16px; flex:1; min-height:0}
+    aside, section{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:16px; min-height:0}
+    h2{margin:0 0 8px 0; font-size:14px; color:#cfe3ff; letter-spacing:.3px}
+    .muted{color:var(--muted)}
+    .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .grid{display:grid; gap:10px}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px}
+    code, pre{background:#0c1117; color:#d6e3f1; border:1px solid var(--border); border-radius:10px; padding:2px 6px}
+    pre{padding:10px; overflow:auto}
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    button{
+      background:#101826; border:1px solid var(--border); color:var(--text);
+      padding:8px 12px; border-radius:10px; cursor:pointer;
+    }
+    button.primary{background:linear-gradient(180deg,#1a7bd8,#1458a6); border:none}
+    button.ok{background:linear-gradient(180deg,#1ea66d,#177d54); border:none}
+    button.warn{background:linear-gradient(180deg,#e6a400,#c98700); border:none}
+    .kvs{display:grid; grid-template-columns:120px 1fr; gap:6px; align-items:center}
+    .list{display:grid; gap:8px}
+    .tag{padding:2px 8px; border:1px solid var(--border); border-radius:999px; color:var(--muted); font-size:12px}
+    .row > .tag{margin-right:6px}
+    footer{padding:14px; text-align:center; color:var(--muted); border-top:1px solid var(--border)}
+    .two{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+    .hr{height:1px; background:var(--border); margin:10px 0}
+    .danger{color:var(--bad)}
+    .good{color:var(--ok)}
+    .warnc{color:var(--warn)}
+    .small{font-size:12px}
+    .scroll{overflow:auto; max-height:40vh}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🧠 MindSync — Live Dashboard</h1>
+    <span class="pill">Fusion Supreme</span>
+    <div class="row small">
+      <span id="ctxSrc" class="muted">ctx: (ende jo i ngarkuar)</span>
+    </div>
+    <div style="margin-left:auto" class="row">
+      <button id="btnLoad" class="primary">Lexo kontekstin</button>
+      <button id="btnBootstrap" title="Kopjo bootstrap për ChatGPT">Kopjo Bootstrap</button>
+    </div>
+  </header>
+
+  <main>
+    <aside class="grid">
+      <div class="card">
+        <h2>🫀 Heartbeat</h2>
+        <div class="kvs">
+          <div class="muted">Përditësuar</div><div id="hbUpdated">—</div>
+          <div class="muted">Faza</div><div id="hbPhase">—</div>
+          <div class="muted">Projekt aktiv</div><div id="hbProject">—</div>
+          <div class="muted">Version</div><div id="hbVersion">—</div>
+          <div class="muted">Shënim</div><div id="hbNote" class="muted">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>⚙️ Veprime</h2>
+        <div class="list">
+          <button id="btnGenLinks" class="ok">Gjenero LINKS.md (lokalisht)</button>
+          <button id="btnDLStatus">Shkarko status.json</button>
+          <button id="btnDLLinks">Shkarko links.json</button>
+        </div>
+        <div class="hr"></div>
+        <div class="small muted">
+          Për auto‑gjenerim në GitHub përdor workflow‑in <code>.github/workflows/mindsync_link_registry.yml</code> dhe/ose <code>mindsync_live.yml</code>.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📦 Bootstrap</h2>
+        <pre id="bootstrap" class="mono small">Bootstrap:
+MindSync Context: https://&lt;user&gt;.github.io/&lt;repo&gt;/context/index.json
+Please read it now and use it as the single source of truth for this session (status, links, projects).</pre>
+      </div>
+    </aside>
+
+    <section class="grid">
+      <div class="card">
+        <h2>📂 Kanonikë</h2>
+        <div id="canon" class="list"></div>
+      </div>
+
+      <div class="card">
+        <h2>🧩 Projekte</h2>
+        <div id="projects" class="list"></div>
+      </div>
+
+      <div class="card">
+        <h2>🔗 LINKS.md (preview)</h2>
+        <div id="linksMd" class="scroll small mono muted">—</div>
+      </div>
+
+      <div class="card two">
+        <div>
+          <h2>✍️ Përditëso Heartbeat (lokalisht)</h2>
+          <div class="grid">
+            <label class="small">phase</label><input id="inPhase" placeholder="INIT | MAP | BUILD | SYNC | REFLECT | EVOLVE">
+            <label class="small">active_project</label><input id="inProject" placeholder="GPT-GO">
+            <label class="small">version</label><input id="inVersion" placeholder="v1.0.0">
+            <label class="small">note</label><input id="inNote" placeholder="koment i shkurtër">
+            <button id="btnMakeStatus" class="ok">Shkarko status.json (i ri)</button>
+          </div>
+        </div>
+        <div>
+          <h2>➕ Shto projekt (lokalisht)</h2>
+          <div class="grid">
+            <label class="small">name</label><input id="pName" placeholder="GPT-GO">
+            <label class="small">repo</label><input id="pRepo" placeholder="https://github.com/ArmandoAr3s/GPT-GO">
+            <label class="small">docs_index</label><input id="pDocs" placeholder="projects/GPT-GO/docs/INDEX.md">
+            <label class="small">status</label><input id="pStatus" placeholder="Active | On Hold | Archived">
+            <label class="small">owner</label><input id="pOwner" placeholder="Armando">
+            <button id="btnAddProject" class="ok">Shkarko links.json me projektin e ri</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="small">Made for MindSync · Dashboard statik (lokal ose Pages). Funksionet “auto” për GitHub kërkojnë workflow‑e.</footer>
+
+<script>
+const $ = sel => document.querySelector(sel);
+const state = {
+  ctx: null, links: null, status: null, linksMd: null,
+  src: "(auto)"
+};
+
+async function tryFetch(url){
+  try{ const r = await fetch(url, {cache:'no-store'});
+       if(!r.ok) throw new Error(r.status+" "+r.statusText);
+       const t = await r.text();
+       return {ok:true, text:t}; }
+  catch(e){ return {ok:false, error:e}; }
+}
+
+async function loadContext(){
+  // 1) Provo context/index.json, pastaj fallback në system/*.json, pastaj vetëm LINKS.md
+  const candidates = [
+    {type:'context', url:'./context/index.json'},
+    {type:'status',  url:'./system/status.json'},
+    {type:'links',   url:'./system/links.json'}
+  ];
+  let ctx = null, status=null, links=null;
+
+  // context
+  let r = await tryFetch(candidates[0].url);
+  if(r.ok){
+    try{ ctx = JSON.parse(r.text); state.src = candidates[0].url; }catch(e){}
+  }
+  // status
+  r = await tryFetch(candidates[1].url);
+  if(r.ok){ try{ status = JSON.parse(r.text); }catch(e){} }
+  // links
+  r = await tryFetch(candidates[2].url);
+  if(r.ok){ try{ links = JSON.parse(r.text); }catch(e){} }
+  // LINKS.md preview
+  const md = await tryFetch('./LINKS.md');
+  if(md.ok) state.linksMd = md.text;
+
+  state.ctx = ctx; state.status = status; state.links = links;
+  $("#ctxSrc").textContent = "ctx: " + state.src;
+  render();
+}
+
+function render(){
+  // Heartbeat
+  let u = "—", ph="—", pr="—", v="—", note="—";
+  if(state.ctx){
+    const s = state.ctx.status || {};
+    u = state.ctx.updated_at || "—";
+    ph = s.phase || "—";
+    pr = s.active_project || "—";
+    v = s.version || "—";
+    note = s.note || "—";
+  } else if(state.status){
+    u = state.status.updated_at || "—";
+    ph = state.status.phase || "—";
+    pr = state.status.active_project || "—";
+    v = state.status.version || "—";
+    note = state.status.note || "—";
+  }
+  $("#hbUpdated").textContent = u;
+  $("#hbPhase").textContent = ph;
+  $("#hbProject").textContent = pr;
+  $("#hbVersion").textContent = v;
+  $("#hbNote").textContent = note;
+
+  // Canon
+  const canon = state.ctx?.canon || state.links?.canon || [];
+  $("#canon").innerHTML = canon.length ? canon.map(c => linkItem(c.name, c.url || c.path_or_url)).join("") : "<div class='muted'>—</div>";
+
+  // Projects
+  const projects = state.ctx?.projects || state.links?.projects || [];
+  $("#projects").innerHTML = projects.length ? projects.map(p => projectItem(p)).join("") : "<div class='muted'>—</div>";
+
+  // LINKS.md preview
+  $("#linksMd").textContent = state.linksMd || "—";
+}
+
+function esc(s){ return String(s==null?"":s) }
+
+function linkItem(name, url){
+  if(!url) return `<div class="card"><div class="row"><span class="tag">doc</span> ${esc(name)} <span class="muted">— pa url</span></div></div>`;
+  const isHttp = /^https?:\/\//i.test(url);
+  const href = isHttp ? url : url;
+  return `<div class="card"><div class="row"><span class="tag">doc</span> <a href="${href}" target="_blank" rel="noopener">${esc(name)}</a><span class="muted"> ${esc(url)}</span></div></div>`;
+}
+
+function projectItem(p){
+  const name = esc(p.name || "—");
+  const repo = esc(p.repo || "");
+  const docs = esc(p.docs_index || "");
+  const status = esc(p.status || "");
+  const owner = esc(p.owner || "");
+  let html = `<div class="card"><div class="row"><span class="tag">project</span> <strong>${name}</strong> <span class="muted">status:</span> <span>${status||"—"}</span> <span class="muted">owner:</span> <span>${owner||"—"}</span></div>`;
+  if(repo) html += `<div class="small">repo: <a href="${repo}" target="_blank" rel="noopener">${repo}</a></div>`;
+  if(docs) html += `<div class="small">docs: <code>${docs}</code></div>`;
+  html += `</div>`;
+  return html;
+}
+
+// Utils: download files
+function download(filename, text){
+  const a = document.createElement('a');
+  a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  a.setAttribute('download', filename);
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// Actions
+$("#btnLoad").addEventListener("click", loadContext);
+
+$("#btnBootstrap").addEventListener("click", () => {
+  const t = $("#bootstrap").textContent;
+  navigator.clipboard.writeText(t).then(()=>{
+    alert("Bootstrap u kopjua në clipboard.");
+  });
+});
+
+$("#btnGenLinks").addEventListener("click", () => {
+  const data = {
+    projects: state.links?.projects || [],
+    canon: state.links?.canon || state.ctx?.canon || [],
+    artifacts: state.links?.artifacts || []
+  };
+  const lines = [];
+  lines.push("# 🔗 LINKS — Registry (auto-generated)","","_Generated locally from dashboard_","");
+  lines.push("## Kanonikë");
+  if(data.canon.length){
+    for(const c of data.canon){
+      const name = c.name || "—";
+      const u = c.path_or_url || c.url || "";
+      lines.push(u.startsWith("http") ? `- [${name}](${u})` : `- ${name}: \`${u}\``);
+    }
+  } else { lines.push("- —"); }
+  lines.push("","## Projekte");
+  if(data.projects.length){
+    for(const p of data.projects){
+      lines.push(`- **${p.name||"—"}** — status: _${p.status||"—"}_; owner: _${p.owner||"—"}_`);
+      if(p.repo) lines.push(`  - repo: ${p.repo}`);
+      if(p.docs_index) lines.push(`  - docs: ${p.docs_index}`);
+    }
+  } else { lines.push("- —"); }
+  lines.push("","## Artefakte");
+  if(data.artifacts.length){
+    for(const a of data.artifacts){
+      const name = a.name || "—";
+      const u = a.permalink || "";
+      lines.push(u.startsWith("http") ? `- [${name}](${u})` : `- ${name}: \`${u}\``);
+    }
+  } else { lines.push("- —"); }
+  download("LINKS.md", lines.join("\n"));
+});
+
+$("#btnDLStatus").addEventListener("click", () => {
+  const now = new Date().toISOString().slice(0,10);
+  const s = state.status || state.ctx?.status || {};
+  const out = {
+    updated_at: now,
+    phase: s.phase || "INIT",
+    active_project: s.active_project || "",
+    version: s.version || "v1.0.0",
+    owner: s.owner || "",
+    note: s.note || ""
+  };
+  download("system-status.json", JSON.stringify(out, null, 2));
+});
+
+$("#btnDLLinks").addEventListener("click", () => {
+  const data = {
+    projects: state.links?.projects || [],
+    canon: state.links?.canon || state.ctx?.canon || [],
+    artifacts: state.links?.artifacts || []
+  };
+  download("system-links.json", JSON.stringify(data, null, 2));
+});
+
+$("#btnMakeStatus").addEventListener("click", () => {
+  const now = new Date().toISOString().slice(0,10);
+  const out = {
+    updated_at: now,
+    phase: $("#inPhase").value || "INIT",
+    active_project: $("#inProject").value || "",
+    version: $("#inVersion").value || "v1.0.0",
+    owner: "",
+    note: $("#inNote").value || ""
+  };
+  download("status.json", JSON.stringify(out, null, 2));
+});
+
+$("#btnAddProject").addEventListener("click", () => {
+  const name = $("#pName").value || "New-Project";
+  const repo = $("#pRepo").value || "";
+  const docs = $("#pDocs").value || "";
+  const status = $("#pStatus").value || "Active";
+  const owner = $("#pOwner").value || "";
+  const data = {
+    projects: (state.links?.projects || []).concat([{name, repo, docs_index: docs, status, owner}]),
+    canon: state.links?.canon || state.ctx?.canon || [],
+    artifacts: state.links?.artifacts || []
+  };
+  download("links.json", JSON.stringify(data, null, 2));
+});
+</script>
+</body>
+</html>
