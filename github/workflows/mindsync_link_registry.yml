@@ -1,0 +1,30 @@
+name: MindSync Link Registry
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Generate LINKS.md
+        run: |
+          python system/linkgen.py || exit 1
+      - name: Commit changes
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add LINKS.md
+            git commit -m "chore(mindsync): auto-generate LINKS.md from system/links.json"
+            git push
+          else
+            echo "No changes to commit."
+          fi
