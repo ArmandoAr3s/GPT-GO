@@ -1,8 +1,8 @@
 {
   "updated_at": "2025-10-28",
   "phase": "INIT",
-  "active_project": "",
+  "active_project": "GPT-GO",
   "version": "v1.0.0",
-  "owner": "",
-  "note": "Sistemi u inicializua."
+  "owner": "ArmandoAr3s",
+  "note": "Initialized GPT-GO as canonical project and linked registry."
 }
