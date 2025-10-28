@@ -1,5 +1,13 @@
 {
-  "projects": [],
+  "projects": [
+    {
+      "name": "GPT-GO",
+      "repo": "https://github.com/ArmandoAr3s/GPT-GO",
+      "docs_index": "projects/GPT-GO/docs/INDEX.md",
+      "status": "Active",
+      "owner": "ArmandoAr3s"
+    }
+  ],
   "canon": [
     {
       "name": "Kushtetuta Supreme",
