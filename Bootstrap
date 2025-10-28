@@ -1,0 +1,3 @@
+Bootstrap:
+MindSync Context: https://<user>.github.io/<repo>/context/index.json
+Please read it now and use it as the single source of truth for this session (status, links, projects).
