@@ -1,0 +1,63 @@
+name: MindSync — Live Context & Links
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Validate JSON (status & links)
+        run: |
+          python - << 'PY'
+          import json,sys,Pathlib
+          from pathlib import Path
+          ok=True
+          for p in ["system/status.json","system/links.json"]:
+              path=Path(p)
+              if not path.exists():
+                  print(f"[validate] MISSING {p}")
+                  ok=False
+                  continue
+              try:
+                  data=json.loads(path.read_text(encoding="utf-8"))
+                  print(f"[validate] OK  {p}")
+              except Exception as e:
+                  print(f"[validate] FAIL {p}: {e}")
+                  ok=False
+          if not ok: sys.exit(1)
+          PY
+
+      - name: Generate LINKS.md (if linkgen exists)
+        run: |
+          if [ -f system/linkgen.py ]; then
+            python system/linkgen.py
+          else
+            echo "linkgen.py not present; skipping LINKS.md generation"
+          fi
+
+      - name: Build context/index.json
+        run: |
+          python system/build_context.py
+
+      - name: Commit & push artifacts (LINKS.md, context/ & docs/context/)
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add LINKS.md context/index.json docs/context/index.json || true
+            git commit -m "chore(mindsync): refresh LINKS.md & live context"
+            git push
+          else
+            echo "No changes to commit."
+          fi
